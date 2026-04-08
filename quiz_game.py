@@ -131,6 +131,40 @@ class QuizGame:
 
         print("========================================")
 
+    def add_quiz(self):
+        print("새로운 퀴즈를 추가합니다.")
+        print()
+
+        while True:
+            question = input("문제를 입력하세요: ").strip()
+            if question:
+                break
+            print("문제를 입력해주세요.")
+
+        choices = []
+        for i in range(1, 5):
+            while True:
+                choice = input(f"선택지 {i}: ").strip()
+                if choice:
+                    choices.append(choice)
+                    break
+                print("선택지를 입력해주세요.")
+
+        while True:
+            try:
+                user_input = input("정답 번호 (1-4): ").strip()
+                answer = int(user_input)
+                if 1 <= answer <= 4:
+                    break
+                print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
+            except ValueError:
+                print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
+
+        self.quizzes.append(Quiz(question, choices, answer))
+        self.save_state()
+        print()
+        print("퀴즈가 추가되었습니다!")
+
     def run(self):
         try:
             while True:
@@ -140,7 +174,7 @@ class QuizGame:
                 if choice == 1:
                     self.play_quiz()
                 elif choice == 2:
-                    print("\n아직 구현되지 않은 기능입니다.\n")
+                    self.add_quiz()
                 elif choice == 3:
                     print("\n아직 구현되지 않은 기능입니다.\n")
                 elif choice == 4:
