@@ -1,4 +1,5 @@
 import json
+import random
 
 from quiz import Quiz, DEFAULT_QUIZZES
 
@@ -92,12 +93,26 @@ class QuizGame:
             print("등록된 퀴즈가 없습니다.")
             return
 
-        total = len(self.quizzes)
+        total_available = len(self.quizzes)
+        print(f"퀴즈를 시작합니다! (총 {total_available}문제 중 몇 문제를 풀겠습니까?)")
+
+        while True:
+            try:
+                user_input = input(f"문제 수 입력 (1-{total_available}): ").strip()
+                count = int(user_input)
+                if 1 <= count <= total_available:
+                    break
+                print(f"잘못된 입력입니다. 1-{total_available} 사이의 숫자를 입력하세요.")
+            except ValueError:
+                print(f"잘못된 입력입니다. 1-{total_available} 사이의 숫자를 입력하세요.")
+
+        selected_quizzes = random.sample(self.quizzes, count)
+        total = count
         correct_count = 0
 
-        print(f"퀴즈를 시작합니다! (총 {total}문제)")
+        print(f"\n{total}문제를 풀겠습니다!")
 
-        for i, quiz in enumerate(self.quizzes):
+        for i, quiz in enumerate(selected_quizzes):
             print()
             print("----------------------------------------")
             quiz.display(i + 1)
