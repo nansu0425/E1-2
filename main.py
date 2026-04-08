@@ -1,2 +1,5 @@
+from quiz_game import QuizGame
+
 if __name__ == "__main__":
-    pass
+    game = QuizGame()
+    game.run()
