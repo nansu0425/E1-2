@@ -84,81 +84,65 @@ class QuizGame:
         print("6. 종료")
         print("========================================")
 
-    def get_menu_choice(self):
+    def _get_number_in_range(self, prompt, low, high):
         while True:
             try:
-                user_input = input("선택: ").strip()
+                user_input = input(prompt).strip()
                 choice = int(user_input)
-                if 1 <= choice <= 6:
+                if low <= choice <= high:
                     return choice
-                print("잘못된 입력입니다. 1-6 사이의 숫자를 입력하세요.")
+                print(f"잘못된 입력입니다. {low}-{high} 사이의 숫자를 입력하세요.")
             except ValueError:
-                # 빈 입력이나 숫자가 아닌 문자열을 int()로 변환 시 발생
-                print("잘못된 입력입니다. 1-6 사이의 숫자를 입력하세요.")
+                print(f"잘못된 입력입니다. {low}-{high} 사이의 숫자를 입력하세요.")
 
-    def play_quiz(self):
-        if not self.quizzes:
-            print("등록된 퀴즈가 없습니다.")
-            return
+    def _get_nonempty_input(self, prompt, error_message):
+        while True:
+            user_input = input(prompt).strip()
+            if user_input:
+                return user_input
+            print(error_message)
 
-        total_available = len(self.quizzes)
-        print(f"퀴즈를 시작합니다! (총 {total_available}문제 중 몇 문제를 풀겠습니까?)")
+    def get_menu_choice(self):
+        return self._get_number_in_range("선택: ", 1, 6)
+
+    def _ask_single_question(self, quiz, question_number):
+        print()
+        print("----------------------------------------")
+        quiz.display(question_number)
+        print()
+
+        hint_used = False
 
         while True:
             try:
-                user_input = input(f"문제 수 입력 (1-{total_available}): ").strip()
-                count = int(user_input)
-                if 1 <= count <= total_available:
+                user_input = input("정답 입력 (h=힌트): ").strip()
+
+                if user_input.lower() == "h":
+                    if quiz.hint:
+                        print(f"힌트: {quiz.hint}")
+                        hint_used = True
+                    else:
+                        print("이 문제에는 힌트가 없습니다.")
+                    continue
+
+                answer = int(user_input)
+                if 1 <= answer <= 4:
                     break
-                print(f"잘못된 입력입니다. 1-{total_available} 사이의 숫자를 입력하세요.")
+                print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
             except ValueError:
-                print(f"잘못된 입력입니다. 1-{total_available} 사이의 숫자를 입력하세요.")
+                print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
 
-        selected_quizzes = random.sample(self.quizzes, count)
-        total = count
-        correct_count = 0
+        if quiz.check_answer(answer):
+            print("정답입니다!")
+            if hint_used:
+                print("(힌트를 사용하여 절반만 인정)")
+                return 0.5
+            return 1
+        else:
+            print(f"틀렸습니다. 정답은 {quiz.answer}번입니다.")
+            return 0
 
-        print(f"\n{total}문제를 풀겠습니다!")
-
-        for i, quiz in enumerate(selected_quizzes):
-            print()
-            print("----------------------------------------")
-            quiz.display(i + 1)
-            print()
-
-            hint_used = False
-
-            while True:
-                try:
-                    user_input = input("정답 입력 (h=힌트): ").strip()
-
-                    if user_input.lower() == "h":
-                        if quiz.hint:
-                            print(f"힌트: {quiz.hint}")
-                            hint_used = True
-                        else:
-                            print("이 문제에는 힌트가 없습니다.")
-                        continue
-
-                    answer = int(user_input)
-                    if 1 <= answer <= 4:
-                        break
-                    print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
-                except ValueError:
-                    print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
-
-            if quiz.check_answer(answer):
-                print("정답입니다!")
-                if hint_used:
-                    print("(힌트를 사용하여 절반만 인정)")
-                    correct_count += 0.5
-                else:
-                    correct_count += 1
-            else:
-                print(f"틀렸습니다. 정답은 {quiz.answer}번입니다.")
-
-        score = int(correct_count / total * 100)
-
+    def _record_result(self, total, correct_count, score):
         print()
         print("========================================")
         print(f"결과: {total}문제 중 {correct_count}문제 정답! ({score}점)")
@@ -183,35 +167,37 @@ class QuizGame:
 
         print("========================================")
 
+    def play_quiz(self):
+        if not self.quizzes:
+            print("등록된 퀴즈가 없습니다.")
+            return
+
+        total_available = len(self.quizzes)
+        print(f"퀴즈를 시작합니다! (총 {total_available}문제 중 몇 문제를 풀겠습니까?)")
+        count = self._get_number_in_range(f"문제 수 입력 (1-{total_available}): ", 1, total_available)
+        selected_quizzes = random.sample(self.quizzes, count)
+
+        print(f"\n{count}문제를 풀겠습니다!")
+
+        correct_count = 0
+        for i, quiz in enumerate(selected_quizzes):
+            correct_count += self._ask_single_question(quiz, i + 1)
+
+        score = int(correct_count / count * 100)
+        self._record_result(count, correct_count, score)
+
     def add_quiz(self):
         print("새로운 퀴즈를 추가합니다.")
         print()
 
-        while True:
-            question = input("문제를 입력하세요: ").strip()
-            if question:
-                break
-            print("문제를 입력해주세요.")
+        question = self._get_nonempty_input("문제를 입력하세요: ", "문제를 입력해주세요.")
 
         choices = []
         for i in range(1, 5):
-            while True:
-                choice = input(f"선택지 {i}: ").strip()
-                if choice:
-                    choices.append(choice)
-                    break
-                print("선택지를 입력해주세요.")
+            choice = self._get_nonempty_input(f"선택지 {i}: ", "선택지를 입력해주세요.")
+            choices.append(choice)
 
-        while True:
-            try:
-                user_input = input("정답 번호 (1-4): ").strip()
-                answer = int(user_input)
-                if 1 <= answer <= 4:
-                    break
-                print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
-            except ValueError:
-                print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
-
+        answer = self._get_number_in_range("정답 번호 (1-4): ", 1, 4)
         hint = input("힌트 (없으면 Enter): ").strip()
 
         self.quizzes.append(Quiz(question, choices, answer, hint))
@@ -263,18 +249,10 @@ class QuizGame:
         print()
 
         total = len(self.quizzes)
-        while True:
-            try:
-                user_input = input(f"삭제할 퀴즈 번호 (1-{total}, 취소=0): ").strip()
-                choice = int(user_input)
-                if choice == 0:
-                    print("삭제를 취소했습니다.")
-                    return
-                if 1 <= choice <= total:
-                    break
-                print(f"잘못된 입력입니다. 0-{total} 사이의 숫자를 입력하세요.")
-            except ValueError:
-                print(f"잘못된 입력입니다. 0-{total} 사이의 숫자를 입력하세요.")
+        choice = self._get_number_in_range(f"삭제할 퀴즈 번호 (1-{total}, 취소=0): ", 0, total)
+        if choice == 0:
+            print("삭제를 취소했습니다.")
+            return
 
         deleted = self.quizzes.pop(choice - 1)
         self.save_state()
