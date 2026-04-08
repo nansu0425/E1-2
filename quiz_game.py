@@ -74,7 +74,8 @@ class QuizGame:
         print("2. 퀴즈 추가")
         print("3. 퀴즈 목록")
         print("4. 점수 확인")
-        print("5. 종료")
+        print("5. 퀴즈 삭제")
+        print("6. 종료")
         print("========================================")
 
     def get_menu_choice(self):
@@ -82,12 +83,12 @@ class QuizGame:
             try:
                 user_input = input("선택: ").strip()
                 choice = int(user_input)
-                if 1 <= choice <= 5:
+                if 1 <= choice <= 6:
                     return choice
-                print("잘못된 입력입니다. 1-5 사이의 숫자를 입력하세요.")
+                print("잘못된 입력입니다. 1-6 사이의 숫자를 입력하세요.")
             except ValueError:
                 # 빈 입력이나 숫자가 아닌 문자열을 int()로 변환 시 발생
-                print("잘못된 입력입니다. 1-5 사이의 숫자를 입력하세요.")
+                print("잘못된 입력입니다. 1-6 사이의 숫자를 입력하세요.")
 
     def play_quiz(self):
         if not self.quizzes:
@@ -227,6 +228,32 @@ class QuizGame:
         total = self.best_score["total"]
         print(f"최고 점수: {score}점 ({total}문제 중 {correct}문제 정답)")
 
+    def delete_quiz(self):
+        if not self.quizzes:
+            print("등록된 퀴즈가 없습니다.")
+            return
+
+        self.show_quiz_list()
+        print()
+
+        total = len(self.quizzes)
+        while True:
+            try:
+                user_input = input(f"삭제할 퀴즈 번호 (1-{total}, 취소=0): ").strip()
+                choice = int(user_input)
+                if choice == 0:
+                    print("삭제를 취소했습니다.")
+                    return
+                if 1 <= choice <= total:
+                    break
+                print(f"잘못된 입력입니다. 0-{total} 사이의 숫자를 입력하세요.")
+            except ValueError:
+                print(f"잘못된 입력입니다. 0-{total} 사이의 숫자를 입력하세요.")
+
+        deleted = self.quizzes.pop(choice - 1)
+        self.save_state()
+        print(f"퀴즈가 삭제되었습니다: {deleted.question}")
+
     def run(self):
         try:
             while True:
@@ -242,6 +269,8 @@ class QuizGame:
                 elif choice == 4:
                     self.show_score()
                 elif choice == 5:
+                    self.delete_quiz()
+                elif choice == 6:
                     print("\n게임을 종료합니다.")
                     break
 
