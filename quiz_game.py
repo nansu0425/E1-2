@@ -165,6 +165,19 @@ class QuizGame:
         print()
         print("퀴즈가 추가되었습니다!")
 
+    def show_quiz_list(self):
+        if not self.quizzes:
+            print("등록된 퀴즈가 없습니다.")
+            return
+
+        total = len(self.quizzes)
+        print(f"등록된 퀴즈 목록 (총 {total}개)")
+        print()
+        print("----------------------------------------")
+        for i, quiz in enumerate(self.quizzes):
+            print(f"[{i + 1}] {quiz.question}")
+        print("----------------------------------------")
+
     def run(self):
         try:
             while True:
@@ -176,7 +189,7 @@ class QuizGame:
                 elif choice == 2:
                     self.add_quiz()
                 elif choice == 3:
-                    print("\n아직 구현되지 않은 기능입니다.\n")
+                    self.show_quiz_list()
                 elif choice == 4:
                     print("\n아직 구현되지 않은 기능입니다.\n")
                 elif choice == 5:
