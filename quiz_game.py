@@ -1,5 +1,6 @@
 import json
 import random
+from datetime import datetime
 
 from quiz import Quiz, DEFAULT_QUIZZES
 
@@ -9,6 +10,7 @@ class QuizGame:
         self.quizzes = []
         self.best_score = {"score": 0, "correct": 0, "total": 0}
         self.has_played = False
+        self.history = []
         self.loaded_from_file = False
         self.load_state()
 
@@ -22,12 +24,14 @@ class QuizGame:
                 self.quizzes.append(Quiz(q["question"], q["choices"], q["answer"], q["hint"]))
             self.best_score = data["best_score"]
             self.has_played = data["has_played"]
+            self.history = data["history"]
             self.loaded_from_file = True
 
         except FileNotFoundError:
             # 첫 실행: state.json이 아직 없음
             self.quizzes = list(DEFAULT_QUIZZES)
             self.best_score = {"score": 0, "correct": 0, "total": 0}
+            self.history = []
             self.loaded_from_file = False
 
         except (json.JSONDecodeError, KeyError, TypeError):
@@ -38,6 +42,7 @@ class QuizGame:
             self.quizzes = list(DEFAULT_QUIZZES)
             self.best_score = {"score": 0, "correct": 0, "total": 0}
             self.has_played = False
+            self.history = []
             self.loaded_from_file = False
             self.save_state()
 
@@ -46,6 +51,7 @@ class QuizGame:
             "quizzes": [],
             "best_score": self.best_score,
             "has_played": self.has_played,
+            "history": self.history,
         }
         for quiz in self.quizzes:
             data["quizzes"].append({
@@ -157,6 +163,13 @@ class QuizGame:
         print("========================================")
         print(f"결과: {total}문제 중 {correct_count}문제 정답! ({score}점)")
 
+        self.history.append({
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "total": total,
+            "correct": correct_count,
+            "score": score,
+        })
+
         if not self.has_played or score > self.best_score["score"]:
             self.has_played = True
             print("새로운 최고 점수입니다!")
@@ -165,7 +178,8 @@ class QuizGame:
                 "correct": correct_count,
                 "total": total,
             }
-            self.save_state()
+
+        self.save_state()
 
         print("========================================")
 
@@ -227,6 +241,18 @@ class QuizGame:
         correct = self.best_score["correct"]
         total = self.best_score["total"]
         print(f"최고 점수: {score}점 ({total}문제 중 {correct}문제 정답)")
+
+        if self.history:
+            print()
+            print("게임 기록:")
+            print("----------------------------------------")
+            for i, record in enumerate(self.history):
+                date = record["date"]
+                r_total = record["total"]
+                r_correct = record["correct"]
+                r_score = record["score"]
+                print(f"[{i + 1}] {date} | {r_total}문제 중 {r_correct}문제 정답 ({r_score}점)")
+            print("----------------------------------------")
 
     def delete_quiz(self):
         if not self.quizzes:
