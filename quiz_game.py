@@ -6,7 +6,7 @@ from quiz import Quiz, DEFAULT_QUIZZES
 class QuizGame:
     def __init__(self):
         self.quizzes = []
-        self.best_score = 0
+        self.best_score = {"score": 0, "correct": 0, "total": 0}
         self.loaded_from_file = False
         self.load_state()
 
@@ -24,7 +24,7 @@ class QuizGame:
         except FileNotFoundError:
             # 첫 실행: state.json이 아직 없음
             self.quizzes = list(DEFAULT_QUIZZES)
-            self.best_score = 0
+            self.best_score = {"score": 0, "correct": 0, "total": 0}
             self.loaded_from_file = False
 
         except (json.JSONDecodeError, KeyError, TypeError):
@@ -33,7 +33,7 @@ class QuizGame:
             # TypeError: 값의 타입이 잘못된 경우 (예: quizzes가 리스트가 아님)
             print("저장된 데이터가 손상되었습니다. 기본 데이터로 복구합니다.")
             self.quizzes = list(DEFAULT_QUIZZES)
-            self.best_score = 0
+            self.best_score = {"score": 0, "correct": 0, "total": 0}
             self.loaded_from_file = False
 
     def save_state(self):
@@ -58,7 +58,7 @@ class QuizGame:
 
         if self.loaded_from_file:
             count = len(self.quizzes)
-            score = self.best_score
+            score = self.best_score["score"]
             print(f"저장된 데이터를 불러왔습니다. (퀴즈 {count}개, 최고점수 {score}점)")
             print("========================================")
             self.loaded_from_file = False
@@ -82,6 +82,55 @@ class QuizGame:
                 # 빈 입력이나 숫자가 아닌 문자열을 int()로 변환 시 발생
                 print("잘못된 입력입니다. 1-5 사이의 숫자를 입력하세요.")
 
+    def play_quiz(self):
+        if not self.quizzes:
+            print("등록된 퀴즈가 없습니다.")
+            return
+
+        total = len(self.quizzes)
+        correct_count = 0
+
+        print(f"퀴즈를 시작합니다! (총 {total}문제)")
+
+        for i, quiz in enumerate(self.quizzes):
+            print()
+            print("----------------------------------------")
+            quiz.display(i + 1)
+            print()
+
+            while True:
+                try:
+                    user_input = input("정답 입력: ").strip()
+                    answer = int(user_input)
+                    if 1 <= answer <= 4:
+                        break
+                    print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
+                except ValueError:
+                    print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
+
+            if quiz.check_answer(answer):
+                print("정답입니다!")
+                correct_count += 1
+            else:
+                print(f"틀렸습니다. 정답은 {quiz.answer}번입니다.")
+
+        score = int(correct_count / total * 100)
+
+        print()
+        print("========================================")
+        print(f"결과: {total}문제 중 {correct_count}문제 정답! ({score}점)")
+
+        if self.best_score["total"] == 0 or score > self.best_score["score"]:
+            print("새로운 최고 점수입니다!")
+            self.best_score = {
+                "score": score,
+                "correct": correct_count,
+                "total": total,
+            }
+            self.save_state()
+
+        print("========================================")
+
     def run(self):
         try:
             while True:
@@ -89,7 +138,7 @@ class QuizGame:
                 choice = self.get_menu_choice()
 
                 if choice == 1:
-                    print("\n아직 구현되지 않은 기능입니다.\n")
+                    self.play_quiz()
                 elif choice == 2:
                     print("\n아직 구현되지 않은 기능입니다.\n")
                 elif choice == 3:
