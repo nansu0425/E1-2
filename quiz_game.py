@@ -7,6 +7,7 @@ class QuizGame:
     def __init__(self):
         self.quizzes = []
         self.best_score = {"score": 0, "correct": 0, "total": 0}
+        self.has_played = False
         self.loaded_from_file = False
         self.load_state()
 
@@ -19,6 +20,7 @@ class QuizGame:
             for q in data["quizzes"]:
                 self.quizzes.append(Quiz(q["question"], q["choices"], q["answer"]))
             self.best_score = data["best_score"]
+            self.has_played = data["has_played"]
             self.loaded_from_file = True
 
         except FileNotFoundError:
@@ -34,12 +36,15 @@ class QuizGame:
             print("저장된 데이터가 손상되었습니다. 기본 데이터로 복구합니다.")
             self.quizzes = list(DEFAULT_QUIZZES)
             self.best_score = {"score": 0, "correct": 0, "total": 0}
+            self.has_played = False
             self.loaded_from_file = False
+            self.save_state()
 
     def save_state(self):
         data = {
             "quizzes": [],
             "best_score": self.best_score,
+            "has_played": self.has_played,
         }
         for quiz in self.quizzes:
             data["quizzes"].append({
@@ -120,7 +125,8 @@ class QuizGame:
         print("========================================")
         print(f"결과: {total}문제 중 {correct_count}문제 정답! ({score}점)")
 
-        if self.best_score["total"] == 0 or score > self.best_score["score"]:
+        if not self.has_played or score > self.best_score["score"]:
+            self.has_played = True
             print("새로운 최고 점수입니다!")
             self.best_score = {
                 "score": score,
@@ -178,6 +184,16 @@ class QuizGame:
             print(f"[{i + 1}] {quiz.question}")
         print("----------------------------------------")
 
+    def show_score(self):
+        if not self.has_played:
+            print("아직 퀴즈를 풀지 않았습니다.")
+            return
+
+        score = self.best_score["score"]
+        correct = self.best_score["correct"]
+        total = self.best_score["total"]
+        print(f"최고 점수: {score}점 ({total}문제 중 {correct}문제 정답)")
+
     def run(self):
         try:
             while True:
@@ -191,7 +207,7 @@ class QuizGame:
                 elif choice == 3:
                     self.show_quiz_list()
                 elif choice == 4:
-                    print("\n아직 구현되지 않은 기능입니다.\n")
+                    self.show_score()
                 elif choice == 5:
                     print("\n게임을 종료합니다.")
                     break
