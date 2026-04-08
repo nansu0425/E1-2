@@ -19,7 +19,7 @@ class QuizGame:
 
             self.quizzes = []
             for q in data["quizzes"]:
-                self.quizzes.append(Quiz(q["question"], q["choices"], q["answer"]))
+                self.quizzes.append(Quiz(q["question"], q["choices"], q["answer"], q["hint"]))
             self.best_score = data["best_score"]
             self.has_played = data["has_played"]
             self.loaded_from_file = True
@@ -52,6 +52,7 @@ class QuizGame:
                 "question": quiz.question,
                 "choices": quiz.choices,
                 "answer": quiz.answer,
+                "hint": quiz.hint,
             })
 
         with open("state.json", "w", encoding="utf-8") as f:
@@ -118,9 +119,20 @@ class QuizGame:
             quiz.display(i + 1)
             print()
 
+            hint_used = False
+
             while True:
                 try:
-                    user_input = input("정답 입력: ").strip()
+                    user_input = input("정답 입력 (h=힌트): ").strip()
+
+                    if user_input.lower() == "h":
+                        if quiz.hint:
+                            print(f"힌트: {quiz.hint}")
+                            hint_used = True
+                        else:
+                            print("이 문제에는 힌트가 없습니다.")
+                        continue
+
                     answer = int(user_input)
                     if 1 <= answer <= 4:
                         break
@@ -130,7 +142,11 @@ class QuizGame:
 
             if quiz.check_answer(answer):
                 print("정답입니다!")
-                correct_count += 1
+                if hint_used:
+                    print("(힌트를 사용하여 절반만 인정)")
+                    correct_count += 0.5
+                else:
+                    correct_count += 1
             else:
                 print(f"틀렸습니다. 정답은 {quiz.answer}번입니다.")
 
@@ -181,7 +197,9 @@ class QuizGame:
             except ValueError:
                 print("잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
 
-        self.quizzes.append(Quiz(question, choices, answer))
+        hint = input("힌트 (없으면 Enter): ").strip()
+
+        self.quizzes.append(Quiz(question, choices, answer, hint))
         self.save_state()
         print()
         print("퀴즈가 추가되었습니다!")
