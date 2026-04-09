@@ -143,28 +143,34 @@ class QuizGame:
             return 0
 
     def _record_result(self, total, correct_count, score):
-        print()
-        print("========================================")
-        print(f"결과: {total}문제 중 {correct_count}문제 정답! ({score}점)")
-
-        self.history.append({
+        record = {
             "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "total": total,
             "correct": correct_count,
             "score": score,
-        })
+        }
+        is_new_best = not self.has_played or score > self.best_score["score"]
 
-        if not self.has_played or score > self.best_score["score"]:
-            self.has_played = True
-            print("새로운 최고 점수입니다!")
+        # 상태 변경을 I/O(print) 없이 연속 수행한다.
+        # print()는 시스템 콜을 동반하여 KeyboardInterrupt 발생 확률이 높으므로,
+        # 변경 사이에 끼면 논리적 불일치 상태(예: history는 추가됐지만 best_score 미갱신)로
+        # save_state()가 호출될 수 있다.
+        self.history.append(record)
+        self.has_played = True
+        if is_new_best:
             self.best_score = {
                 "score": score,
                 "correct": correct_count,
                 "total": total,
             }
-
         self.save_state()
 
+        # 상태 저장 완료 후 결과 출력
+        print()
+        print("========================================")
+        print(f"결과: {total}문제 중 {correct_count}문제 정답! ({score}점)")
+        if is_new_best:
+            print("새로운 최고 점수입니다!")
         print("========================================")
 
     def play_quiz(self):
@@ -282,3 +288,4 @@ class QuizGame:
             # KeyboardInterrupt: Ctrl+C 입력 시 발생
             # EOFError: Ctrl+D 입력 시 발생
             print("\n\n게임을 종료합니다.")
+            self.save_state()
