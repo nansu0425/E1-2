@@ -42,6 +42,8 @@ python main.py
 | 퀴즈 추가 | ![퀴즈 추가](docs/screenshots/퀴즈%20추가.png) |
 | 점수 확인 | ![점수 확인](docs/screenshots/점수%20확인.png) |
 | 깃 기록 | ![깃 기록](docs/screenshots/깃%20기록.png) |
+| 깃 클론 | ![깃 클론](docs/screenshots/깃%20클론.png) |
+| 깃 풀 | ![깃 풀](docs/screenshots/깃%20풀.png) |
 | 개발 환경 | ![개발 환경](docs/screenshots/개발%20환경.png) |
 
 ## 입력 오류 처리
